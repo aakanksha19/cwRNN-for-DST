@@ -3,8 +3,9 @@
 import os
 import sys
 import pickle
+import nltk
 
-input_folder = "../output_folder/" #sys.argv[1]
+input_folder = "../hyps/" #sys.argv[1]
 #output_file = "../output_folder" #sys.argv[2]
  
 vocab = pickle.load(open("vocab.pkl", "rb" ))
@@ -24,27 +25,38 @@ def make_feature_vector(current_turn_features):
 features = {}
 for file in os.listdir(input_folder):
 	input = open(os.path.join(input_folder,file),'r')
-	features[file] = []
+	features[file] = {}
 	i = 0
-	current_turn_features = []
+	current_turn_features = [0]*len(vocab.keys())
 	turn_wise_features = {}
 	idd = 0
 	unigrams = []
 	bigrams = []
 	trigrams = []
+	print file
 	for line in input:
-		if "turn" in line:
-			words=[]
-			current_turn_features =  unigrams + bigrams + trigrams
-			turn_wise_features[idd] = current_turn_features
-			make_feature_vector(current_turn_features)
-			idd = idd + 1 
-			current_turn_features = []
+		#print line
+		if line.startswith("turn "):
+			if current_turn_features:
+				turn_wise_features[idd] = current_turn_features
+				idd = idd + 1 
+				current_turn_features = [0]*len(vocab.keys())
 			continue
 		else:
-			ws=line.split()
-			for element in ws:
-				words.append(element)
-				unigrams = find_ngrams(words, 1)
-				bigrams = find_ngrams(words, 2)
-				trigrams = find_ngrams(words, 3)
+			if len(line.strip().split()) == 1:
+				continue
+			ws=nltk.word_tokenize(line.strip().split('\t')[0])
+			score = line.strip().split('\t')[1]
+			bigrams = find_ngrams(ws, 2)
+			trigrams = find_ngrams(ws, 3)
+			for gram in ws:
+				current_turn_features[vocab[gram]] += float(score)
+			for gram in bigrams:
+				word = gram[0]+" "+gram[1]
+				current_turn_features[vocab[word]] += float(score)
+			for gram in trigrams:
+				word = gram[0]+" "+gram[1]+" "+gram[2]
+				current_turn_features[vocab[word]] += float(score)
+	features[file] = turn_wise_features
+
+pickle.dump(features,open('f.pkl','wb'))
