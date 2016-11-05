@@ -23,10 +23,10 @@ def make_feature_vector(current_turn_features):
 				fts.append(0)
 
 features = {}
+i = 100
 for file in os.listdir(input_folder):
+	i += 1
 	input = open(os.path.join(input_folder,file),'r')
-	features[file] = {}
-	i = 0
 	current_turn_features = [0]*len(vocab.keys())
 	turn_wise_features = {}
 	idd = 0
@@ -58,5 +58,6 @@ for file in os.listdir(input_folder):
 				word = gram[0]+" "+gram[1]+" "+gram[2]
 				current_turn_features[vocab[word]] += float(score)
 	features[file] = turn_wise_features
-
-pickle.dump(features,open('f.pkl','wb'))
+	if i%100 == 0:
+		pickle.dump(features,open("feat"+str(i/100)+".pkl","wb"))
+		features = {}
