@@ -17,14 +17,14 @@ index = 0
 for i in range(1,33):
 	input_features = pickle.load(open("features/feat"+str(i)+".pkl"))
 	for key in input_features:
+		print key
 		turns = len(input_features[key].keys())
 		X_train.append([[]]*turns)
 		y_train_method.append([[0]*len(method_slots)]*turns)
 		y_train_request.append([[0]*len(request_slots)]*turns)
 		for turn in range(turns):
 			X_train[index][turn] = input_features[key][turn]
-			for slot in output_pickle[key][turn]['method-label']:
-				y_train_request[index][turn][method_slots.index(slot)] = 1
+			y_train_request[index][turn][method_slots.index(output_pickle[key][turn]['method-label'])] = 1
 			for slot in output_pickle[key][turn]['requested-slots']:
 				y_train_request[index][turn][request_slots.index(slot)] = 1
 	index += 1
